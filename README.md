@@ -1,23 +1,27 @@
-# <Your product name>
-
-> Fill this top section from your Examate project card on Day 1. Replace every line in angle brackets.
+# SolderTrail
 
 ## Problem
-<3–5 sentences: who struggles with what today, and what your product changes.>
+Business development executives at electronic-component suppliers need quick and reliable information about electronics manufacturing companies before sales meetings. Important details like new plants, order books, product lines, and PLI incentives are spread across annual reports, investor presentations, BRSRs, and earnings-call transcripts. Searching these documents manually takes time, and the existing chatbot is slow, making it difficult to understand where the delay occurs. SolderTrail helps users find relevant information quickly with cited sources and stage-by-stage performance tracking.
 
 ## Who it is for
-<One or two real user types, for example "compliance officer at a gold-loan NBFC in Coimbatore".>
+Business development executives at electronic-component suppliers who work with electronics manufacturing services (EMS) companies, especially those operating in and around Sriperumbudur.
 
 ## Signature feature
-<One sentence: the feature only your product has.>
+Why was this slow? — A button that displays the trace waterfall for a particular answer, showing the time taken by each stage, including query rewriting, BM25 search, vector search, re-ranking, and LLM generation.
 
 ## Hardest problem (my interview story)
-<In your own words, from your project card.>
+The hardest problem is improving response speed while maintaining accurate, source-backed answers. I will use OpenTelemetry tracing to measure the time taken by each stage of the retrieval and answer-generation pipeline. I will set a p95 end-to-end latency target of under 4 seconds and use a dashboard to identify and optimize the slowest stage, comparing performance before and after the changes.
 
 ## Dataset
+
 | Source | Link | Documents | Pages | Licence / terms |
-|---|---|---|---|---|
-| <name> | <url> | <n> | <n> | <licence> |
+|---|---|---:|---:|---|
+| Avalon Technologies | [Investor Relations](https://www.avalontec.com/investors/) | To be collected | To be counted | Check individual document terms |
+| Dixon Technologies | Official investor relations page | To be collected | To be counted | Check individual document terms |
+| Kaynes Technology | Official investor relations page | To be collected | To be counted | Check individual document terms |
+| Syrma SGS | Official investor relations page | To be collected | To be counted | Check individual document terms |
+| Amber Enterprises | Official investor relations page | To be collected | To be counted | Check individual document terms |
+
 
 ## 10 real questions
 See [docs/QUESTIONS.md](docs/QUESTIONS.md).

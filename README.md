@@ -16,7 +16,7 @@ The hardest problem is improving response speed while maintaining accurate, sour
 
 | Source | Link | Documents | Pages | Licence / terms |
 |---|---|---:|---:|---|
-| Avalon Technologies | [Investor Relations](https://www.avalontec.com/investors/) | To be collected | To be counted | Check individual document terms |
+| Avalon Technologies | [Investor Relations](https://www.avalontec.com/investors/) | 2 | 623 | Public corporate disclosures / Investor Relations; subject to copyright and document terms. |
 | Dixon Technologies | Official investor relations page | To be collected | To be counted | Check individual document terms |
 | Kaynes Technology | Official investor relations page | To be collected | To be counted | Check individual document terms |
 | Syrma SGS | Official investor relations page | To be collected | To be counted | Check individual document terms |

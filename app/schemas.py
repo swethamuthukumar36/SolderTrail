@@ -12,3 +12,8 @@ class ChatRequest(BaseModel):
 class ChatMessage(BaseModel):
     role: Literal["system", "user", "assistant"]
     content: str
+
+class Usage(BaseModel):
+    input_tokens: int = 0
+    output_tokens: int = 0
+    estimated: bool = False

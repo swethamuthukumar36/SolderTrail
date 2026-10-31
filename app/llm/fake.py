@@ -1,3 +1,4 @@
+
 from collections.abc import AsyncIterator, Iterable, Iterator
 
 from app.llm.types import LLMProvider, LLMRequest, ProviderError, TextChunk, Usage
@@ -11,6 +12,7 @@ class FakeProvider(LLMProvider):
         chunks: Iterable[str] = ("Hello", " from the fake provider."),
         usage: Usage | None = None,
         error: ProviderError | None = None,
+        model: str = "examate-fake",
     ) -> None:
         self._chunks = tuple(chunks)
         self._usage = usage or Usage(
@@ -19,6 +21,7 @@ class FakeProvider(LLMProvider):
             estimated=True,
         )
         self._error = error
+        self.model = model
         self.calls = 0
 
     def stream(self, request: LLMRequest) -> Iterator[TextChunk]:

@@ -1,0 +1,18 @@
+services:
+  api:
+    build: .
+    container_name: soldertrail-api
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      APP_NAME: examate-rag
+      ENVIRONMENT: production
+      COST_LOG_PATH: /app/logs/cost.jsonl
+    volumes:
+      - app_logs:/app/logs
+    restart: unless-stopped
+
+volumes:
+  app_logs:

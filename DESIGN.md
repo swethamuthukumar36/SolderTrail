@@ -4,7 +4,7 @@
 
 SolderTrail is a Retrieval-Augmented Generation (RAG) application designed to help business development executives find reliable information about electronics manufacturing companies.
 
-The system uses company documents such as annual reports, investor presentations, BRSRs, and earnings-call transcripts...
+The system aims to use company documents such as annual reports, investor presentations, BRSRs, and earnings-call transcripts.
 
 The initial target companies are:
 
@@ -14,27 +14,34 @@ The initial target companies are:
 - Syrma SGS
 - Amber Enterprises
 
+The current implementation focuses on the FastAPI backend, LLM integration, fallback handling, usage tracking, and Docker deployment.
+
+Document ingestion and retrieval features are planned for future development.
+
 ## 2. Technology Stack
 
 | Component | Technology |
 |---|---|
 | Backend | Python, FastAPI |
-| LLM integration | Primary LLM with fallback model |
-| Document processing | Python |
-| API server | Uvicorn |
+| LLM integration | OpenAI-compatible API / Fake Provider |
+| LLM fallback | Configurable fallback provider |
 | Configuration | Pydantic Settings |
-| Containerization | Docker |
+| API server | Uvicorn |
+| Usage tracking | JSONL cost logs |
+| Containerization | Docker, Docker Compose |
 | Testing | Pytest |
+| Code quality | Ruff |
 | CI | GitHub Actions |
 
 ## 3. API Endpoints
 
 | Method | Endpoint | Purpose |
 |---|---|---|
+| GET | `/` | Root endpoint |
 | GET | `/hello` | Basic application greeting |
-| GET | `/health` | Check application health |
-| POST | `/query` | Submit a question and retrieve an answer |
-| GET | `/usage` | View token consumption and estimated LLM cost |
+| GET | `/health` | Application liveness check |
+| POST | `/chat` | Send messages to the configured LLM and receive a streamed response |
+| GET | `/usage` | View daily token usage and estimated cost |
 
 ### GET /health
 
@@ -46,53 +53,89 @@ Example response:
 {
   "status": "ok",
   "app": "examate-rag",
-  "environment": "local"
+  "environment": "production"
 }
 ```
 
-The health endpoint should not call the LLM or database.
+This endpoint does not call the LLM or database.
 
-### POST /query
+### POST /chat
 
-Accepts a user question and returns an answer supported by relevant company documents.
+Accepts a conversation and streams the LLM response using Server-Sent Events (SSE).
 
-Planned request:
+Example request:
 
 ```json
 {
-  "question": "What are the major products manufactured by Avalon Technologies?"
+  "messages": [
+    {
+      "role": "user",
+      "content": "Hello, SolderTrail!"
+    }
+  ]
 }
 ```
 
-Planned response:
+Example streamed response:
 
-```json
-{
-  "answer": "Answer generated using retrieved documents.",
-  "sources": [],
-  "model": "primary"
+```text
+data: {"delta": "Hello"}
+
+data: {"delta": " from the fake provider."}
+
+event: done
+data: {
+  "usage": {
+    "input_tokens": 0,
+    "output_tokens": 2,
+    "estimated": true
+  },
+  "cost_usd": 0.0
 }
 ```
+
+The application supports a primary LLM provider and a configurable fallback provider.
 
 ### GET /usage
 
-Returns LLM token usage and estimated cost.
+Returns daily usage statistics from the JSONL cost log.
 
-Planned response:
+Example response:
 
 ```json
 {
-  "total_input_tokens": 0,
-  "total_output_tokens": 0,
-  "total_cost": 0.0
+  "2026-10-31": {
+    "calls": 2,
+    "input_tokens": 0,
+    "output_tokens": 4,
+    "cost_usd": 0.0
+  }
 }
 ```
 
-## 4. Database Design
+The usage log tracks:
 
-The following tables are proposed for the application.
+- Provider and model
+- Input and output tokens
+- Estimated usage indicator
+- Request latency
+- Estimated cost
+- Request success status
+- Whether fallback was used
 
-### Documents
+## 4. Data Storage Design
+
+The current implementation does not use a relational database.
+
+LLM usage records are stored as JSON Lines in `logs/cost.jsonl`.
+
+A persistent Docker volume is configured for application logs.
+
+### Planned Database Tables
+
+The following tables are proposed for future document ingestion and retrieval functionality.
+
+#### Documents
 
 Stores information about collected company documents.
 
@@ -105,7 +148,7 @@ Stores information about collected company documents.
 | source_url | Original document URL |
 | publication_date | Document publication date |
 
-### Document Chunks
+#### Document Chunks
 
 Stores smaller text sections extracted from documents for retrieval.
 
@@ -116,40 +159,52 @@ Stores smaller text sections extracted from documents for retrieval.
 | chunk_text | Extracted text |
 | page_number | Source page number |
 
-### Usage Logs
-
-Tracks LLM usage and estimated costs.
-
-| Column | Description |
-|---|---|
-| usage_id | Unique usage identifier |
-| model_name | LLM model used |
-| input_tokens | Input token count |
-| output_tokens | Output token count |
-| estimated_cost | Estimated API cost |
-| created_at | Request timestamp |
-
 ## 5. LLM Integration and Fallback
 
-The application will use a primary LLM for generating answers.
+The application uses a configurable LLM provider.
 
-If the primary model fails or becomes unavailable, the application will attempt to use a configured fallback model.
+If the primary provider becomes unavailable before producing response content, the application attempts to use the configured fallback provider.
 
-The application should record which model generated each response and track token usage and estimated cost.
+The application records usage information, request latency, estimated cost, and fallback usage.
 
-## 6. Deployment and Monitoring
+A `/usage` endpoint provides daily usage summaries.
 
-- Docker will be used to containerize the FastAPI application.
-- Uvicorn will serve the API.
-- The `/health` endpoint will support health checks.
-- GitHub Actions will run automated code-quality checks and tests.
-- The application will be deployed to a free hosting platform for demonstration.
+The current development configuration uses a fake provider for testing without requiring external LLM API calls.
 
-## 7. Future Improvements
+## 6. Docker and Deployment
+
+The FastAPI application is containerized using Docker.
+
+Docker Compose manages the API service.
+
+Current deployment configuration includes:
+
+- Python 3.12 slim base image.
+- Uvicorn API server.
+- Environment-based configuration.
+- Persistent volume for application logs.
+- Automatic container restart policy.
+- Application health endpoint.
+
+The application has been tested locally inside Docker.
+
+Deployment to a free hosting platform is planned.
+
+## 7. CI and Testing
+
+GitHub Actions is configured to:
+
+- Install project dependencies.
+- Run Ruff code-quality checks.
+- Execute automated tests using Pytest.
+
+## 8. Future Improvements
 
 - Document ingestion and processing.
 - BM25 and vector-based retrieval.
+- PostgreSQL with pgvector integration.
 - Reranking retrieved documents.
 - Source citations in generated answers.
 - Query tracing and performance monitoring.
+- OpenTelemetry integration.
 - Query latency dashboard and trace waterfall.

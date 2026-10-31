@@ -1,3 +1,4 @@
+
 import random
 import time
 from collections.abc import AsyncIterator, Callable, Iterator
@@ -71,7 +72,9 @@ class ReliableLLM:
                 if error.status_code in NON_RETRYABLE_STATUS_CODES:
                     raise LLMConfigurationError(str(error)) from error
                 if emitted_text or not is_retryable(error):
-                    raise LLMUnavailable(str(error), partial_output=emitted_text) from error
+                    raise LLMUnavailable(
+                        str(error), partial_output=emitted_text
+                    ) from error
                 if attempt == max_retries:
                     raise LLMUnavailable(str(error)) from error
                 self.sleep(retry_delay(attempt, error.retry_after))
@@ -89,8 +92,11 @@ class AsyncReliableLLM:
         self.fallback = fallback
         self.primary_retries = primary_retries
         self.fallback_retries = fallback_retries
+        self.fallback_used = False
 
     async def stream(self, request: LLMRequest) -> AsyncIterator[TextChunk]:
+        self.fallback_used = False
+
         try:
             async for chunk in self._stream_provider(
                 self.primary, request, self.primary_retries
@@ -99,6 +105,9 @@ class AsyncReliableLLM:
         except LLMUnavailable as error:
             if error.partial_output or self.fallback is None:
                 raise
+
+            self.fallback_used = True
+
             async for chunk in self._stream_provider(
                 self.fallback, request, self.fallback_retries
             ):
@@ -122,9 +131,12 @@ class AsyncReliableLLM:
                 if error.status_code in NON_RETRYABLE_STATUS_CODES:
                     raise LLMConfigurationError(str(error)) from error
                 if emitted_text or not is_retryable(error):
-                    raise LLMUnavailable(str(error), partial_output=emitted_text) from error
+                    raise LLMUnavailable(
+                        str(error), partial_output=emitted_text
+                    ) from error
                 if attempt == max_retries:
                     raise LLMUnavailable(str(error)) from error
+
                 import asyncio
 
                 await asyncio.sleep(retry_delay(attempt, error.retry_after))

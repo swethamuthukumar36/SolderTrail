@@ -35,7 +35,7 @@ def _create_provider(
     model: str,
 ) -> LLMProvider:
     if provider_name == "fake":
-        return FakeProvider()
+        return FakeProvider(model=model)
     if provider_name == "openai_compat":
         return OpenAICompatProvider(base_url, api_key, model)
     raise ValueError(f"unknown LLM_PROVIDER: {provider_name}")

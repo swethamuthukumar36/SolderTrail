@@ -1,3 +1,4 @@
+
 from functools import lru_cache
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -8,6 +9,8 @@ class Settings(BaseSettings):
 
     app_name: str = "examate-rag"
     environment: str = "local"  # local | ci | production
+    database_url: str = ""
+
     llm_provider: str = "fake"
     llm_base_url: str = "http://localhost:11434/v1"
     llm_api_key: str = ""

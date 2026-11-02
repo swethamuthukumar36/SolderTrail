@@ -4,8 +4,9 @@ import time
 from collections.abc import AsyncIterator
 from typing import Annotated
 
+import psycopg
 from fastapi import Depends, FastAPI
-from fastapi.responses import StreamingResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 
 from app.config import Settings, get_settings
 from app.cost import log_call
@@ -46,6 +47,38 @@ def health(settings: SettingsDep) -> dict:
         "app": settings.app_name,
         "environment": settings.environment,
     }
+
+
+@app.get("/ready")
+def ready(settings: SettingsDep):
+    """Readiness check: verifies database connectivity."""
+    if not settings.database_url:
+        return {
+            "status": "ok",
+            "database": "not configured",
+        }
+
+    try:
+        with psycopg.connect(
+            settings.database_url,
+            connect_timeout=3,
+        ) as connection:
+            with connection.cursor() as cursor:
+                cursor.execute("SELECT 1")
+
+        return {
+            "status": "ok",
+            "database": "ok",
+        }
+
+    except psycopg.Error:
+        return JSONResponse(
+            status_code=503,
+            content={
+                "status": "not_ready",
+                "database": "unavailable",
+            },
+        )
 
 
 @app.get("/usage")

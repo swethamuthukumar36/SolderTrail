@@ -1,3 +1,4 @@
+
 services:
   api:
     build: .
@@ -10,9 +11,32 @@ services:
       APP_NAME: examate-rag
       ENVIRONMENT: production
       COST_LOG_PATH: /app/logs/cost.jsonl
+      DATABASE_URL: postgresql://soldertrail:soldertrail_dev_password@db:5432/soldertrail
     volumes:
       - app_logs:/app/logs
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  db:
+    image: pgvector/pgvector:pg16
+    container_name: soldertrail-db
+    environment:
+      POSTGRES_DB: soldertrail
+      POSTGRES_USER: soldertrail
+      POSTGRES_PASSWORD: soldertrail_dev_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U soldertrail -d soldertrail"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
     restart: unless-stopped
 
 volumes:
   app_logs:
+  postgres_data:

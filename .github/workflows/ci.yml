@@ -24,3 +24,34 @@ jobs:
 
       - name: Run tests
         run: python -m pytest -q
+
+      - name: Build Docker image
+        run: docker build -t soldertrail-api:ci .
+
+      - name: Run API container
+        run: |
+          docker run -d \
+            --name soldertrail-api-ci \
+            -p 8000:8000 \
+            -e APP_NAME="SolderTrail API" \
+            -e ENVIRONMENT=ci \
+            -e LLM_PROVIDER=fake \
+            -e COST_LOG_PATH=/tmp/cost.jsonl \
+            soldertrail-api:ci
+
+      - name: Smoke test health endpoint
+        run: |
+          for i in {1..15}; do
+            if curl --fail http://localhost:8000/health; then
+              exit 0
+            fi
+            echo "Waiting for API to start..."
+            sleep 2
+          done
+          echo "API health check failed"
+          docker logs soldertrail-api-ci
+          exit 1
+
+      - name: Stop API container
+        if: always()
+        run: docker rm -f soldertrail-api-ci || true

@@ -3,7 +3,7 @@ import json
 import time
 from pathlib import Path
 
-from app.schemas import Usage
+from app.llm.types import Usage
 
 
 def cost_usd(usage: Usage, price_in_per_m: float, price_out_per_m: float) -> float:

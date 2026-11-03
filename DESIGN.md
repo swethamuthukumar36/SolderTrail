@@ -1,10 +1,10 @@
-# SolderTrail - System Design
+# SolderTrail – System Design
 
 ## 1. Project Overview
 
 SolderTrail is a Retrieval-Augmented Generation (RAG) application designed to help business development executives find reliable information about electronics manufacturing companies.
 
-The system aims to use company documents such as annual reports, investor presentations, BRSRs, and earnings-call transcripts.
+The system aims to use company documents such as annual reports, investor presentations, Business Responsibility and Sustainability Reports (BRSRs), and earnings-call transcripts.
 
 The initial target companies are:
 
@@ -14,9 +14,9 @@ The initial target companies are:
 - Syrma SGS
 - Amber Enterprises
 
-The current implementation focuses on the FastAPI backend, LLM integration, fallback handling, usage tracking, and Docker deployment.
+The current implementation focuses on the FastAPI backend, LLM provider integration, retry and fallback handling, usage tracking, automated testing, Docker deployment, and CI.
 
-Document ingestion and retrieval features are planned for future development.
+Document ingestion, text extraction, indexing, and retrieval are planned for future development.
 
 ## 2. Technology Stack
 
@@ -24,22 +24,42 @@ Document ingestion and retrieval features are planned for future development.
 |---|---|
 | Backend | Python, FastAPI |
 | LLM integration | OpenAI-compatible API / Fake Provider |
-| LLM fallback | Configurable fallback provider |
+| LLM reliability | Retry and configurable fallback |
 | Configuration | Pydantic Settings |
 | API server | Uvicorn |
 | Usage tracking | JSONL cost logs |
+| Database | PostgreSQL with pgvector (Docker Compose configuration) |
 | Containerization | Docker, Docker Compose |
 | Testing | Pytest |
 | Code quality | Ruff |
 | CI | GitHub Actions |
+| Deployment | Render |
 
-## 3. API Endpoints
+## 3. System Architecture
+
+The current application follows a modular backend architecture.
+
+Main components:
+
+- **FastAPI application:** Exposes API endpoints.
+- **LLM provider layer:** Supports fake and OpenAI-compatible providers.
+- **Reliability layer:** Handles retry attempts and fallback provider execution.
+- **Usage tracking:** Records token usage, latency, and estimated cost.
+- **Configuration layer:** Loads application settings and environment variables.
+- **Database service:** PostgreSQL with pgvector is configured through Docker Compose for future retrieval functionality.
+
+The current application can process chat requests using the configured LLM provider and stream responses through Server-Sent Events (SSE).
+
+Document retrieval is not yet connected to the chat workflow.
+
+## 4. API Endpoints
 
 | Method | Endpoint | Purpose |
 |---|---|---|
 | GET | `/` | Root endpoint |
 | GET | `/hello` | Basic application greeting |
 | GET | `/health` | Application liveness check |
+| GET | `/ready` | Application and database readiness check |
 | POST | `/chat` | Send messages to the configured LLM and receive a streamed response |
 | GET | `/usage` | View daily token usage and estimated cost |
 
@@ -57,11 +77,17 @@ Example response:
 }
 ```
 
-This endpoint does not call the LLM or database.
+This endpoint checks application liveness without calling the LLM.
+
+### GET /ready
+
+Checks whether the application is ready to serve requests.
+
+When no database is configured, the endpoint reports that the database is not configured. When a database URL is configured, it checks database connectivity.
 
 ### POST /chat
 
-Accepts a conversation and streams the LLM response using Server-Sent Events (SSE).
+Accepts conversation messages and streams the LLM response using Server-Sent Events (SSE).
 
 Example request:
 
@@ -84,14 +110,7 @@ data: {"delta": "Hello"}
 data: {"delta": " from the fake provider."}
 
 event: done
-data: {
-  "usage": {
-    "input_tokens": 0,
-    "output_tokens": 2,
-    "estimated": true
-  },
-  "cost_usd": 0.0
-}
+data: {"usage": {"input_tokens": 0, "output_tokens": 2, "estimated": true}, "cost_usd": 0.0}
 ```
 
 The application supports a primary LLM provider and a configurable fallback provider.
@@ -123,13 +142,13 @@ The usage log tracks:
 - Request success status
 - Whether fallback was used
 
-## 4. Data Storage Design
+## 5. Data Storage Design
 
-The current implementation does not use a relational database.
+LLM usage records are currently stored as JSON Lines in `logs/cost.jsonl`.
 
-LLM usage records are stored as JSON Lines in `logs/cost.jsonl`.
+Docker Compose configures PostgreSQL with the pgvector extension for future document storage and vector retrieval functionality.
 
-A persistent Docker volume is configured for application logs.
+Document ingestion and retrieval are not yet implemented.
 
 ### Planned Database Tables
 
@@ -158,51 +177,72 @@ Stores smaller text sections extracted from documents for retrieval.
 | document_id | Related document |
 | chunk_text | Extracted text |
 | page_number | Source page number |
+| embedding | Vector representation for semantic search |
 
-## 5. LLM Integration and Fallback
+## 6. LLM Integration and Reliability
 
 The application uses a configurable LLM provider.
 
-If the primary provider becomes unavailable before producing response content, the application attempts to use the configured fallback provider.
+The current implementation includes:
+
+- Fake provider for local development and testing.
+- OpenAI-compatible provider integration.
+- Retry handling for transient provider failures.
+- Configurable fallback provider.
+- Protection against retrying or falling back after partial response output.
 
 The application records usage information, request latency, estimated cost, and fallback usage.
 
-A `/usage` endpoint provides daily usage summaries.
+The `/usage` endpoint provides daily usage summaries.
 
-The current development configuration uses a fake provider for testing without requiring external LLM API calls.
+The current development and deployment configuration uses the fake provider. Live responses from a real external LLM provider require separate configuration and verification.
 
-## 6. Docker and Deployment
+## 7. Docker and Deployment
 
 The FastAPI application is containerized using Docker.
 
-Docker Compose manages the API service.
+Docker Compose manages the API and PostgreSQL database services.
 
 Current deployment configuration includes:
 
 - Python 3.12 slim base image.
 - Uvicorn API server.
 - Environment-based configuration.
+- PostgreSQL with pgvector.
 - Persistent volume for application logs.
+- Container health checks.
 - Automatic container restart policy.
-- Application health endpoint.
 
-The application has been tested locally inside Docker.
+The application has been tested locally using Docker and Docker Compose.
 
-Deployment to a free hosting platform is planned.
+The application is deployed on Render:
 
-## 7. CI and Testing
+https://soldertrail.onrender.com
+
+The deployed application currently uses the fake provider for testing without requiring an external LLM API key.
+
+## 8. CI and Testing
 
 GitHub Actions is configured to:
 
 - Install project dependencies.
 - Run Ruff code-quality checks.
 - Execute automated tests using Pytest.
+- Build the Docker image.
+- Perform a Docker health-check smoke test.
 
-## 8. Future Improvements
+The current local verification includes:
+
+- 16 automated tests passing.
+- Ruff code-quality checks passing.
+
+## 9. Future Improvements
 
 - Document ingestion and processing.
+- PDF text extraction using pypdf.
+- HTML content extraction using BeautifulSoup.
+- PostgreSQL document metadata storage.
 - BM25 and vector-based retrieval.
-- PostgreSQL with pgvector integration.
 - Reranking retrieved documents.
 - Source citations in generated answers.
 - Query tracing and performance monitoring.

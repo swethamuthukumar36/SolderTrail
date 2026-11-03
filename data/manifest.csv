@@ -1,2 +1,4 @@
 file,source_url,downloaded_on,bytes,sha256
-data/raw\index.html,https://www.avalontec.com/investors/,2026-10-23,197841,e10cc9242f592607
+data/raw/index.html,https://www.avalontec.com/investors/,2026-10-23,197841,e10cc9242f592607e30c3f735d77841c5596d359c7f1ceb49417e32a91e1c38e
+data/raw/avalon/Avalon-Tech-AR-2024-25.pdf,https://www.avalontec.com/investors/,,12135089,975f04b335663c87aa9f8b1201ac0382ca6b940cadaa01d1e7a703556b4cecce
+data/raw/avalon/Avalon-Tech_2026_Annual-Report.pdf,https://www.avalontec.com/investors/,,42067925,9e0382b15b935fde676e3dd22e54a91c67f90aac3c1b12df9dfa31a3888f2c0e

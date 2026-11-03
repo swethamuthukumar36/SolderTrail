@@ -1,3 +1,4 @@
+
 from app.config import Settings
 from app.llm.fake import FakeProvider
 from app.llm.openai_compat import OpenAICompatProvider
@@ -11,7 +12,9 @@ def create_provider(settings: Settings) -> AsyncReliableLLM:
         settings.llm_base_url,
         settings.llm_api_key,
         settings.llm_model,
+        settings.llm_timeout_seconds,
     )
+
     fallback = None
     if settings.llm_fallback_model:
         fallback = OpenAICompatProvider(
@@ -20,6 +23,7 @@ def create_provider(settings: Settings) -> AsyncReliableLLM:
             settings.llm_fallback_model,
             settings.llm_timeout_seconds,
         )
+
     return AsyncReliableLLM(
         primary,
         fallback=fallback,
@@ -33,9 +37,17 @@ def _create_provider(
     base_url: str,
     api_key: str,
     model: str,
+    timeout_seconds: float,
 ) -> LLMProvider:
     if provider_name == "fake":
         return FakeProvider(model=model)
+
     if provider_name == "openai_compat":
-        return OpenAICompatProvider(base_url, api_key, model)
+        return OpenAICompatProvider(
+            base_url,
+            api_key,
+            model,
+            timeout_seconds,
+        )
+
     raise ValueError(f"unknown LLM_PROVIDER: {provider_name}")

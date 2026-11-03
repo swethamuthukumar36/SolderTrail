@@ -1,4 +1,3 @@
-
 import psycopg
 
 import app.main as main

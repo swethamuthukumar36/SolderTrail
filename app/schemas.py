@@ -7,7 +7,7 @@ from pydantic import BaseModel, Field
 
 class ChatRequest(BaseModel):
     messages: list["ChatMessage"] = Field(min_length=1)
-    model: str = "examate-fake"
+    model: str | None = None
 
 
 class ChatMessage(BaseModel):

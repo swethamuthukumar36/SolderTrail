@@ -69,4 +69,3 @@ The API is deployed using Docker on Render. The health endpoint confirms that th
 ## CI
 
 GitHub Actions runs Ruff checks and pytest tests on pushes and pull requests.
-

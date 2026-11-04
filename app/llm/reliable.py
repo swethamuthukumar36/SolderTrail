@@ -1,4 +1,3 @@
-
 import random
 import time
 from collections.abc import AsyncIterator, Callable, Iterator
@@ -72,9 +71,7 @@ class ReliableLLM:
                 if error.status_code in NON_RETRYABLE_STATUS_CODES:
                     raise LLMConfigurationError(str(error)) from error
                 if emitted_text or not is_retryable(error):
-                    raise LLMUnavailable(
-                        str(error), partial_output=emitted_text
-                    ) from error
+                    raise LLMUnavailable(str(error), partial_output=emitted_text) from error
                 if attempt == max_retries:
                     raise LLMUnavailable(str(error)) from error
                 self.sleep(retry_delay(attempt, error.retry_after))
@@ -98,9 +95,7 @@ class AsyncReliableLLM:
         self.fallback_used = False
 
         try:
-            async for chunk in self._stream_provider(
-                self.primary, request, self.primary_retries
-            ):
+            async for chunk in self._stream_provider(self.primary, request, self.primary_retries):
                 yield chunk
         except LLMUnavailable as error:
             if error.partial_output or self.fallback is None:
@@ -108,9 +103,7 @@ class AsyncReliableLLM:
 
             self.fallback_used = True
 
-            async for chunk in self._stream_provider(
-                self.fallback, request, self.fallback_retries
-            ):
+            async for chunk in self._stream_provider(self.fallback, request, self.fallback_retries):
                 yield chunk
 
     async def _stream_provider(
@@ -131,9 +124,7 @@ class AsyncReliableLLM:
                 if error.status_code in NON_RETRYABLE_STATUS_CODES:
                     raise LLMConfigurationError(str(error)) from error
                 if emitted_text or not is_retryable(error):
-                    raise LLMUnavailable(
-                        str(error), partial_output=emitted_text
-                    ) from error
+                    raise LLMUnavailable(str(error), partial_output=emitted_text) from error
                 if attempt == max_retries:
                     raise LLMUnavailable(str(error)) from error
 

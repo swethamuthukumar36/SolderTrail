@@ -1,4 +1,3 @@
-
 import json
 import time
 from collections.abc import AsyncIterator
@@ -99,10 +98,7 @@ async def chat(
     settings: SettingsDep,
 ) -> StreamingResponse:
     llm_request = LLMRequest(
-        messages=tuple(
-            Message(role=message.role, content=message.content)
-            for message in request.messages
-        ),
+        messages=tuple(Message(role=message.role, content=message.content) for message in request.messages),
         model=request.model,
     )
 
@@ -132,9 +128,7 @@ async def chat(
             )
 
             fallback_used = provider.fallback_used
-            provider_name = (
-                "openai_compat" if fallback_used else settings.llm_provider
-            )
+            provider_name = "openai_compat" if fallback_used else settings.llm_provider
 
             active_model = (
                 settings.llm_fallback_model

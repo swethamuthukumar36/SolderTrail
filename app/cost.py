@@ -1,4 +1,5 @@
 """Cost logging: one JSON line per LLM call."""
+
 import json
 import time
 from pathlib import Path
@@ -7,10 +8,7 @@ from app.llm.types import Usage
 
 
 def cost_usd(usage: Usage, price_in_per_m: float, price_out_per_m: float) -> float:
-    return (
-        usage.input_tokens * price_in_per_m
-        + usage.output_tokens * price_out_per_m
-    ) / 1_000_000
+    return (usage.input_tokens * price_in_per_m + usage.output_tokens * price_out_per_m) / 1_000_000
 
 
 def log_call(
@@ -33,9 +31,7 @@ def log_call(
         "output_tokens": usage.output_tokens,
         "usage_estimated": usage.estimated,
         "latency_ms": round(latency_ms, 1),
-        "cost_usd": round(
-            cost_usd(usage, price_in_per_m, price_out_per_m), 8
-        ),
+        "cost_usd": round(cost_usd(usage, price_in_per_m, price_out_per_m), 8),
         "ok": ok,
         "fallback_used": fallback_used,
     }

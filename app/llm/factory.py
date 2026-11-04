@@ -1,4 +1,3 @@
-
 from app.config import Settings
 from app.llm.fake import FakeProvider
 from app.llm.openai_compat import OpenAICompatProvider
